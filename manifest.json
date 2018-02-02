@@ -1,0 +1,29 @@
+{
+  "manifest_version":2,
+  "name":"Buzzword_Plugin",
+  "version":"1.0",
+
+  "description":"Takes the monotony out of vacuous buzzwords.",
+  "homepage_url":"https://github.com/Nyarmith/buzzword_plugin",
+
+  "icons":{
+    "48":"icons/no_buzzword-48.png"
+  },
+
+  "permissions":[
+    "activeTab"
+  ],
+
+  "content_scripts":[
+    {
+      "matches":["*://*"],
+      "js":["buzzword_plug.js"]
+    }
+  ],
+
+  "browser_action":{
+    "default_icon":"icons/no_buzzword-32.png",
+    "default_title":"Buzz-Be-Gone",
+    "default_popup":"popup/settings.html"
+  }
+}
