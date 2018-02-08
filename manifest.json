@@ -16,7 +16,7 @@
 
   "content_scripts":[
     {
-      "matches":["*://*"],
+      "matches":["<all_urls>"],
       "js":["buzzword_plug.js"]
     }
   ],
