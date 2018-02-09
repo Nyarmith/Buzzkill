@@ -1,9 +1,7 @@
 # Plug-in that detects and suggests replacements for buzz-words
 
 TODO:
--Make content-script not go forever/constantly
--Make long-term states w/ background-scripts
--Make pop-up text menu & display current states
+-Add (clickable) suggestions above entry form
 -Add extension page
 
 WebExtension Notes:

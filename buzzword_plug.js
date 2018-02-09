@@ -20,6 +20,13 @@ function handleText(textNode) {
   textNode.nodeValue = replaceText(textNode.nodeValue);
 }
 
+//load state
+function initGlobalList(){
+  global_list = browser.storage.local.get('globs');
+}
+
+initGlobalList();
+
 var suggestions = [
   ['data','fungus'],
   ['innovate','dogwrestle'],
@@ -27,9 +34,11 @@ var suggestions = [
 ];
 
 //running list of substitutes
-var subst = [
+var global_list = [
 ['father','daddy']
 ];  
+
+var substitute_list = global_list;
 
 
 function compose_match(s){
@@ -45,8 +54,8 @@ function compose_replace(s){
 
 function replaceText(v)
 {
-  for (var i=0; i<subst.length; i++){
-    w = subst[i]
+  for (var i=0; i<substitute_list.length; i++){
+    w = substitute_list[i]
     console.log(w);
     //modify w[0], w[1] to be suitable for regex
     match   = compose_match(w[0])
@@ -112,4 +121,33 @@ function walkAndObserve(doc) {
     titleObserver.observe(docTitle, observerConfig);
   }
 }
+
+function saveGlobalList(){
+  browser.storage.local.set({'globs' : global_list});
+}
+
+function updateSubsts(pair){
+  substitute_list = [pair];
+  walkAndObserve(document);
+
+  global_list.push(pair);
+  saveGlobalList();
+}
+
+function msgHandler(request, sender, sendResponse){
+  if (request.key){
+    updateSubsts([request.key, request.image])
+  } else if(request.clear){
+    //reverse-substitute and clear globals
+    // TODO
+    global_list = [];
+    saveGlobalList();
+  }
+}
+
+
+// message listener
+browser.runtime.onMessage.addListener(msgHandler);
+
 walkAndObserve(document);
+

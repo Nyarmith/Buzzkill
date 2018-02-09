@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 
 <html>
 	<head>
@@ -6,13 +7,20 @@
 	</head>
 
 	<body>
-		<div id="popup-content">
-			<div class="button beast">buzzword</div>
-			<div class="button beast">replacement</div>
+		<div class="outer-wrapper">
+			<div class="new-note">
+        <input type="text" id="key"></input>
+				<input type="text" id="subst"></input>
+				<button class="add">Add note</button>
+			</div>
+
+			<div class="subst-container">
+
+			</div>
+			<button class="clear">Clear notes</button>
+			<div class="clearfix"></div>
 		</div>
-		<div id="error-content" class="hidden">
-			<p>Can't beastify this web page.</p><p>Try a different page.</p>
-		</div>
+
 		<script src="settings.js"></script>
 	</body>
 
