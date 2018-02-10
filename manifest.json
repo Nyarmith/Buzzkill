@@ -15,16 +15,19 @@
     "storage"
   ],
 
+  "background":{
+      "scripts":["background/init_storage.js"]
+  },
   "content_scripts":[
     {
       "matches":["<all_urls>"],
       "js":["buzzword_plug.js"]
     }
   ],
-
   "browser_action":{
+    "browser_style":true,
     "default_icon":"icons/no_buzzword-32.png",
     "default_title":"Buzz-Be-Gone",
-    "default_popup":"popup/settings.html"
+    "default_popup":"popup/popup.html"
   }
 }

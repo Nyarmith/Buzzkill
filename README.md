@@ -2,6 +2,7 @@
 
 TODO:
 -Add (clickable) suggestions above entry form
+-Make it work
 -Add extension page
 
 WebExtension Notes:

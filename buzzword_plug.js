@@ -20,23 +20,18 @@ function handleText(textNode) {
   textNode.nodeValue = replaceText(textNode.nodeValue);
 }
 
+var suggestions = [];
+//running list of substitutes
+var global_list = [];
 //load state
 function initGlobalList(){
+  //these should be loaded from the background script
   global_list = browser.storage.local.get('globs');
+  suggestions = browser.storage.local.get('suggestions');
 }
 
 initGlobalList();
 
-var suggestions = [
-  ['data','fungus'],
-  ['innovate','dogwrestle'],
-  ['donald trump','undying lord']
-];
-
-//running list of substitutes
-var global_list = [
-['father','daddy']
-];  
 
 var substitute_list = global_list;
 
@@ -122,26 +117,22 @@ function walkAndObserve(doc) {
   }
 }
 
-function saveGlobalList(){
-  browser.storage.local.set({'globs' : global_list});
-}
 
 function updateSubsts(pair){
-  substitute_list = [pair];
+  global_list = browser.storage.local.get('globs');
+  substitute_list = [global_list[global_list.length-1]];
   walkAndObserve(document);
 
-  global_list.push(pair);
-  saveGlobalList();
 }
 
 function msgHandler(request, sender, sendResponse){
   if (request.key){
-    updateSubsts([request.key, request.image])
+    updateSubsts()
   } else if(request.clear){
     //reverse-substitute and clear globals
     // TODO
     global_list = [];
-    saveGlobalList();
+    browser.storage.local.set({'globs' : global_list});
   }
 }
 
