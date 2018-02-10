@@ -22,17 +22,10 @@ var suggestion_holder = document.querySelector('#suggestions');
 var active_substs     = document.querySelector('#live_substs');
 var clear_button      = document.querySelector('#clear_button');
 
-/*  add event listeners to buttons */
+//globals
+var suggestions =[];
+var globals =[];
 
-submit_button.addEventListener('click', addSubst);
-key_input.addEventListener('keypress', onEnter);
-subst_input.addEventListener('keypress', onEnter);
-clear_button.addEventListener('click', clearAll);
-
-
-/* display previously-saved stored notes on startup */
-
-initialize();
 
 function onEnter(e){
   var key = e.which || e.keyCode;
@@ -44,25 +37,6 @@ function onEnter(e){
 /* generic error handler */
 function onError(error) {
   console.log(error);
-}
-
-// TODO : redefine this
-function initialize() {
-  //load storage and display substitutes and suggestions
-  var suggestions = browser.storage.local.get('suggestions');
-  var globals     = browser.storage.local.get('globs');
-  //TODO: some kind of coordinatio between this and future background script here
-
-  /*
-  var gettingAllStorageItems = browser.storage.local.get(null);
-  gettingAllStorageItems.then((results) => {
-    var noteKeys = Object.keys(results);
-    for (let noteKey of noteKeys) {
-      var curValue = results[noteKey];
-      displayNote(noteKey,curValue);
-    }
-  }, onError);
-  */
 }
 
 /* Add a note to the display, and storage */
@@ -84,13 +58,44 @@ function validInput(e){
   var spaces = /(\s|\t|\n)+/
   if (spaces.test(e))
     return false;
-  
+
   //check it doesn't have any newlines
   var newlines=/.*\n.*/
   if (newlines.test(e))
     return false;
 
   return true;
+}
+
+function messageTabs(msg){
+  browser.tabs.query({
+    currentWindow: true,
+    active: true
+  }).then( function(tabs){
+    for (let tab of tabs) {
+      browser.tabs.sendMessage(
+        tab.id,
+        msg
+      ).then(rsp => {
+        console.log(response);
+        console.log(rsp);
+      }).catch(onError);
+    }
+  }).catch(onError);
+}
+
+function saveStates(){
+  browser.storage.local.set({
+    'globs' : globals,
+    'suggestions' : suggestions
+  }).then( function(e){
+    //send message to content script to do a new substitution
+    messageTabs({"update":true})
+    //update displaying of notes
+    drawSubstitutions();
+    drawSuggestions();
+  }
+    ,onError);
 }
 
 function addSubst() {
@@ -103,162 +108,89 @@ function addSubst() {
     deredden();
   }
 
+  console.log("key gotten:"+key);
+  console.log("subst gotten:"+subst);
+
   //clean input
   key = key.trim();
   subst = subst.trim();
 
-  //save to storage
-  var globals = browser.storage.local.get('glob');
-  globals.push([key, subst]);
-  browser.storage.local.set('glob');
-
-  //send message to content script to do a new substitution
-  browser.runtime.sendMessage({"update":true})
-
-  //update displaying of notes
-  displaySubsts(globals);
-  
-  /*var gettingItem = browser.storage.local.get(noteTitle);
-  gettingItem.then((result) => {
-    var objTest = Object.keys(result);
-    if(objTest.length < 1 && noteTitle !== '' && noteBody !== '') {
-      inputTitle.value = '';
-      inputBody.value = '';
-      storeNote(noteTitle,noteBody);
-    }
-  }, onError);
-  */
-}
-
-/* function to store a new note in storage */
-
-
-/* function to display a note in the note box */
-function displaySubsts(mySubsts){
-  /* adding stuff to the active_substs element*/
-  var subst = document.createElement('div');
-  subst.setAttribute('class','active_subst');
-  active_substs.appendChild(subst);
-  //TODO: Add functionality here to edit the elements LIVE
-}
-
-function storeNote(title, body) {
-  var storingNote = browser.storage.local.set({ [title] : body });
-  storingNote.then(() => {
-    displayNote(title,body);
-  }, onError);
+  //add to array
+  globals.push([key,subst]);
+  saveStates();
 }
 
 
-function displayNote(title, body) {
+//clear all stored substs
+function clearAll() {
+  messageTabs({"clear":true});
+  globals = [];
+  drawSubstitutions();
+}
 
-  /* create note display box */
-  var note = document.createElement('div');
-  var noteDisplay = document.createElement('div');
-  var noteH = document.createElement('h2');
-  var notePara = document.createElement('p');
-  var deleteBtn = document.createElement('button');
-  var clearFix = document.createElement('div');
-
-  note.setAttribute('class','note');
-
-  noteH.textContent = title;
-  notePara.textContent = body;
-  deleteBtn.setAttribute('class','delete');
-  deleteBtn.textContent = 'Delete note';
-  clearFix.setAttribute('class','clearfix');
-
-  noteDisplay.appendChild(noteH);
-  noteDisplay.appendChild(notePara);
-  noteDisplay.appendChild(deleteBtn);
-  noteDisplay.appendChild(clearFix);
-
-  note.appendChild(noteDisplay);
-
-  /* set up listener for the delete functionality */
-
-  deleteBtn.addEventListener('click',(e) => {
-    const evtTgt = e.target;
-    evtTgt.parentNode.parentNode.parentNode.removeChild(evtTgt.parentNode.parentNode);
-    browser.storage.local.remove(title);
-  })
-
-  /* create note edit box */
-  var noteEdit = document.createElement('div');
-  var noteTitleEdit = document.createElement('input');
-  var noteBodyEdit = document.createElement('textarea');
-  var clearFix2 = document.createElement('div');
-
-  var updateBtn = document.createElement('button');
-  var cancelBtn = document.createElement('button');
-
-  updateBtn.setAttribute('class','update');
-  updateBtn.textContent = 'Update note';
-  cancelBtn.setAttribute('class','cancel');
-  cancelBtn.textContent = 'Cancel update';
-
-  noteEdit.appendChild(noteTitleEdit);
-  noteTitleEdit.value = title;
-  noteEdit.appendChild(noteBodyEdit);
-  noteBodyEdit.textContent = body;
-  noteEdit.appendChild(updateBtn);
-  noteEdit.appendChild(cancelBtn);
-
-  noteEdit.appendChild(clearFix2);
-  clearFix2.setAttribute('class','clearfix');
-
-  note.appendChild(noteEdit);
-
-  noteContainer.appendChild(note);
-  noteEdit.style.display = 'none';
-
-  /* set up listeners for the update functionality */
-
-  noteH.addEventListener('click',() => {
-    noteDisplay.style.display = 'none';
-    noteEdit.style.display = 'block';
-  })
-
-  notePara.addEventListener('click',() => {
-    noteDisplay.style.display = 'none';
-    noteEdit.style.display = 'block';
-  }) 
-
-  cancelBtn.addEventListener('click',() => {
-    noteDisplay.style.display = 'block';
-    noteEdit.style.display = 'none';
-    noteTitleEdit.value = title;
-    noteBodyEdit.value = body;
-  })
-
-  updateBtn.addEventListener('click',() => {
-    if(noteTitleEdit.value !== title || noteBodyEdit.value !== body) {
-      updateNote(title,noteTitleEdit.value,noteBodyEdit.value);
-      note.parentNode.removeChild(note);
-    } 
+function drawSuggestions(){
+  //remove all children
+  while(suggestion_holder.firstChild){
+    suggestion_holder.removeChild(suggestion_holder.firstChild);
+  }
+  suggestions.forEach( function(e) {
+    var sugst = document.createElement('li')
+    sugst.setAttribute('class','active_sugst');
+    sugst.innerText = e[0] + '=>' + e[1];
+    sugst.addEventListener('click',( function() {
+      var kv = e;
+      suggestions = suggestions.filter(e => (e[0]!==kv[0] || e[1]!==kv[1]));
+      globals.push(kv);
+      drawSuggestions();
+      drawSubstitutions();
+      browser.storage.local.set({
+        'globs' : globals,
+        'suggestions' : suggestions
+      })
+    } ));
+    suggestion_holder.appendChild(sugst);
   });
 }
 
+function drawSubstitutions(){
+  while(active_substs.firstChild){
+    active_substs.removeChild(active_substs.firstChild);
+  }
+  globals.forEach( function(e) {
+    var subst = document.createElement('li')
+    subst.setAttribute('class','active_subst');
+    subst.innerText = e[0] + '=>' + e[1];
+    subst.addEventListener('click',( function() {
+      var kv = e;
+      globals = globals.filter(e => (e[0]!==kv[0] || e[1]!==kv[1]));
+      drawSubstitutions();
+      browser.storage.local.set({
+        'globs' : globals,
+        'suggestions' : suggestions
+      })
+    } ));
 
-/* function to update notes */
-
-function updateNote(delNote,newTitle,newBody) {
-  var storingNote = browser.storage.local.set({ [newTitle] : newBody });
-  storingNote.then(() => {
-    if(delNote !== newTitle) {
-      var removingNote = browser.storage.local.remove(delNote);
-      removingNote.then(() => {
-        displayNote(newTitle, newBody);
-      }, onError);
-    } else {
-      displayNote(newTitle, newBody);
-    }
-  }, onError);
+    active_substs.appendChild(subst);
+  });
+  //TODO: Add functionality here to edit the elements LIVE
 }
 
-/* Clear all notes from the display/storage */
-
-function clearAll() {
-  browser.runtime.sendMessage({"clear":true})
+function UpdateUI(e){
+  console.log('loading storage stuff');
+  suggestions = e.suggestions;
+  globals     = e.globs;
+  console.log('suggestions: '+suggestions+'-globals: ' + globals);
+  //actually draw the states here
+  drawSuggestions();
+  drawSubstitutions();
 }
+
+const getStoredSettings = browser.storage.local.get();
+getStoredSettings.then(UpdateUI, onError);
+
+//  add event listeners to buttons
+submit_button.addEventListener('click', addSubst);
+key_input.addEventListener('keypress', onEnter);
+subst_input.addEventListener('keypress', onEnter);
+clear_button.addEventListener('click', clearAll);
 

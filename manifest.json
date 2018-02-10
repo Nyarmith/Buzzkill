@@ -18,12 +18,14 @@
   "background":{
       "scripts":["background/init_storage.js"]
   },
+
   "content_scripts":[
     {
-      "matches":["<all_urls>"],
+      "matches":["*://*/*"],
       "js":["buzzword_plug.js"]
     }
   ],
+
   "browser_action":{
     "browser_style":true,
     "default_icon":"icons/no_buzzword-32.png",

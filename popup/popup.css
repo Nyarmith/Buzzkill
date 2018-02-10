@@ -83,16 +83,47 @@ p, input{
   flow: right;
 }
 
-#live_substs{
-  display: inline-block;
+ul {
+  display: inline;
+  background-color: transparent;
+  width: 100%;
+  list-style: disc;
+  box-sizing: border-box;
+  color: #696969;
+  font-size: 1.075rem;
+  font-family: "Open Sans",arial,x-locale-body,sans-serif;
 }
 
-#suggestions{
+li {
+  padding: 1px 2px;
+  margin: 0 3px 3px 0;
+  background: #eee;
+  border: 1px solid #bbe1f7;
+  border-radius:2px;
   display: inline-block;
+  list-style: disc;
 }
 
-#clear_button{
+.active_subst {
+  border-color: #ffc2b3;
+}
+
+
+/*
+.acive_subst, .active_sugst{
   display: inline-block;
+  margin: 0;
+  padding:0;
+  border: 0;
+  list-style: disc;
+  border-color: rgb(63, 135, 166);
+  border-image-width: 1;
+}*/
+
+#live_title, #suggestions, #live_substs{
+  padding-left: 2px;
+  font-family: "Open Sans",arial,x-locale-body,sans-serif;
+  font-size:1.1rem;
 }
 
 input {

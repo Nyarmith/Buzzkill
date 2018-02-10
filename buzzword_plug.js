@@ -21,17 +21,7 @@ function handleText(textNode) {
 }
 
 var suggestions = [];
-//running list of substitutes
 var global_list = [];
-//load state
-function initGlobalList(){
-  //these should be loaded from the background script
-  global_list = browser.storage.local.get('globs');
-  suggestions = browser.storage.local.get('suggestions');
-}
-
-initGlobalList();
-
 
 var substitute_list = global_list;
 
@@ -119,20 +109,22 @@ function walkAndObserve(doc) {
 
 
 function updateSubsts(pair){
-  global_list = browser.storage.local.get('globs');
-  substitute_list = [global_list[global_list.length-1]];
-  walkAndObserve(document);
-
+  browser.storage.local.get().then( function(e){
+    global_list = e.globs;
+    substitute_list = [global_list[global_list.length-1]];
+    walkAndObserve(document);
+  }, e => console.log(e)
+  )
 }
 
 function msgHandler(request, sender, sendResponse){
-  if (request.key){
+  if (request.update){
     updateSubsts()
   } else if(request.clear){
     //reverse-substitute and clear globals
     // TODO
     global_list = [];
-    browser.storage.local.set({'globs' : global_list});
+    browser.storage.local.set({'suggestions' : suggestions, 'globs' : []});
   }
 }
 
@@ -140,5 +132,11 @@ function msgHandler(request, sender, sendResponse){
 // message listener
 browser.runtime.onMessage.addListener(msgHandler);
 
-walkAndObserve(document);
+browser.storage.local.get().then( function (e){
+  //load values in relevant states
+  global_list = e.globs;
+  suggestions = e.suggestions;
+  substitute_list = global_list;
+  walkAndObserve(document);
+}, e=>console.log(e));
 

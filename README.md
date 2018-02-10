@@ -3,7 +3,9 @@
 TODO:
 -Add (clickable) suggestions above entry form
 -Make it work
+-Highlight actual buzzwords on the screen, give user option to replace it right there.
 -Add extension page
+-Make capitalization conserved in substitution
 
 WebExtension Notes:
 -Content scripts can communicate with background scripts with the messaging API
@@ -19,3 +21,4 @@ WebExtension Notes:
 -I might want to save things as files: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Working_with_files
 
 -Finally, I might want to collect statistics on most popular buzzwords to substitute
+
